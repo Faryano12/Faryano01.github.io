@@ -10,7 +10,7 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()]
   },
-  site: 'https://cv.dzhuk.com',
+  site: 'https://github.com/Faryano12/faryanomandowendecul.github.io',
   integrations: [
     sitemap({
       // The /demo page shows fictional data for the theme listing — keep it out of search indexes.

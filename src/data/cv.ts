@@ -115,6 +115,6 @@ export const CV_DATA: CV = {
             end: "2026",
         },
     ],
-    skills: [saya jago bermain bola],
+    skills: ["saya jago bermain bola"]
         
 };
