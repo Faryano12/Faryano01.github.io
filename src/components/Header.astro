@@ -1,87 +1,132 @@
 ---
-import {CV_DATA, type CV} from '../data/cv';
-import LinkButton from "./common/LinkButton.astro";
-import Icon from "./icons/Icon.astro";
+import { CV_DATA, type CV } from '../data/cv';
+import LinkButton from './common/LinkButton.astro';
+import Icon from './icons/Icon.astro';
 
-import {Image} from 'astro:assets'
-import type {ImageMetadata} from 'astro';
-import defaultAvatar from '../assets/avatar.jpeg';
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import defaultAvatar from '../assets/faryano.jpeg';
 
-interface Props {
-    cv?: CV;
-    avatar?: ImageMetadata;
+interface SocialItem {
+  name: string;
+  url: string;
 }
 
-const {cv = CV_DATA, avatar = defaultAvatar} = Astro.props;
+interface Props {
+  cv?: CV;
+  avatar?: ImageMetadata;
+}
 
-const {name, about, personalWebsiteUrl, contact, location, locationLink} = cv;
+const { cv = CV_DATA, avatar = defaultAvatar } = Astro.props;
 
-const socialIcons: Record<string, "github" | "linkedin"> = {
-    GitHub: "github",
-    LinkedIn: "linkedin",
+const { name, about, personalWebsiteUrl, contact, location, locationLink } = cv;
+
+const socialIcons: Record<string, 'github' | 'linkedin'> = {
+  GitHub: 'github',
+  LinkedIn: 'linkedin',
 };
 
-const socialLinks = contact.social.map((social) => ({
-    name: social.name,
-    url: social.url,
-    icon: socialIcons[social.name],
-}));
+const socialList: SocialItem[] = Array.isArray(contact?.social) ? contact.social : [];
+
+const socialLinks = socialList
+  .map((social) => {
+    const icon = socialIcons[social.name];
+    if (!icon) return null;
+    return {
+      name: social.name,
+      url: social.url,
+      icon,
+    };
+  })
+  .filter((item): item is { name: string; url: string; icon: 'github' | 'linkedin' } => item !== null);
 
 const printLinks = [
-    {href: personalWebsiteUrl, label: personalWebsiteUrl},
-    {href: `mailto:${contact.email}`, label: contact.email},
-    {href: `tel:${contact.tel}`, label: contact.tel},
-    ...contact.social.map((social) => ({href: social.url, label: social.url})),
-];
+  personalWebsiteUrl ? { href: personalWebsiteUrl, label: personalWebsiteUrl } : null,
+  contact?.email ? { href: `mailto:${contact.email}`, label: contact.email } : null,
+  contact?.tel ? { href: `tel:${contact.tel}`, label: contact.tel } : null,
+  ...socialList.map((social) => ({ href: social.url, label: social.url })),
+].filter((item): item is { href: string; label: string } => item !== null);
 ---
-<header class="flex items-center justify-between">
-    <div class="flex-1 space-y-1.5">
-        <h1 class="text-2xl font-bold" id="cv-name">
-            {name}
-        </h1>
-        <p class="max-w-md text-pretty font-mono text-sm text-foreground/80 print:text-[12px]">
-            {about}
-        </p>
-        <p class="max-w-md items-center text-pretty font-mono text-xs text-foreground">
-            <a class="inline-flex gap-x-1.5 align-baseline leading-none hover:underline"
-               href={locationLink}
-               target="_blank"
-               rel="noopener noreferrer"
-               aria-label={`Location: ${location}`}>
-                <Icon name="globe" class="size-3"/>
-                {location}
-            </a>
-        </p>
-        <div class="flex list-none gap-x-1 pt-1 font-mono text-sm text-foreground/80 print:hidden"
-             aria-label="Contact links">
-            <LinkButton href={personalWebsiteUrl} ariaLabel="Website">
-                <Icon name="globe" class="size-4"/>
-            </LinkButton>
-            <LinkButton href={`mailto:${contact.email}`} ariaLabel="Email">
-                    <Icon name="email" class="size-4"/>
-            </LinkButton>
-            <LinkButton href={`tel:${contact.tel}`} ariaLabel="Phone">
-                    <Icon name="phone" class="size-4"/>
-            </LinkButton>
-            {socialLinks.map(({name: socialName, url, icon}) => (
-                <LinkButton href={url} ariaLabel={socialName}>
-                    <Icon name={icon} class="size-4"/>
-                </LinkButton>
-            ))}
-        </div>
-        <div class="hidden gap-x-2 font-mono text-sm text-foreground/80 print:flex print:flex-wrap gap-y-1 print:text-[12px]">
-            {printLinks.map(({href, label}, index) => (
-                <>
-                    {index > 0 && <span aria-hidden="true">|</span>}
-                    <a class="underline hover:text-foreground/70" href={href}>
-                        {label}
-                    </a>
-                </>
-            ))}
-        </div>
+
+<header class="flex items-center justify-between gap-4">
+  <div class="flex-1 space-y-1.5">
+    <h1 class="text-2xl font-bold" id="cv-name">
+      {name}
+    </h1>
+
+    {about && (
+      <p class="max-w-md text-pretty font-mono text-sm text-foreground/80 print:text-[12px]">
+        {about}
+      </p>
+    )}
+
+    {location && (
+      <p class="max-w-md items-center text-pretty font-mono text-xs text-foreground">
+        {locationLink ? (
+          <a
+            class="inline-flex items-center gap-x-1.5 align-baseline leading-none hover:underline"
+            href={locationLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Location: ${location}`}
+          >
+            <Icon name="globe" class="size-3" />
+            {location}
+          </a>
+        ) : (
+          <span class="inline-flex items-center gap-x-1.5 align-baseline leading-none">
+            <Icon name="globe" class="size-3" />
+            {location}
+          </span>
+        )}
+      </p>
+    )}
+
+    <div
+      class="flex flex-wrap items-center gap-x-1 gap-y-1 pt-1 font-mono text-sm text-foreground/80 print:hidden"
+      aria-label="Contact links"
+    >
+      {personalWebsiteUrl && (
+        <LinkButton href={personalWebsiteUrl} ariaLabel="Website">
+          <Icon name="globe" class="size-4" />
+        </LinkButton>
+      )}
+      {contact?.email && (
+        <LinkButton href={`mailto:${contact.email}`} ariaLabel="Email">
+          <Icon name="email" class="size-4" />
+        </LinkButton>
+      )}
+      {contact?.tel && (
+        <LinkButton href={`tel:${contact.tel}`} ariaLabel="Phone">
+          <Icon name="phone" class="size-4" />
+        </LinkButton>
+      )}
+      {socialLinks.map(({ name: socialName, url, icon }) => (
+        <LinkButton href={url} ariaLabel={socialName}>
+          <Icon name={icon} class="size-4" />
+        </LinkButton>
+      ))}
     </div>
-    <span class="relative flex shrink-0 overflow-hidden rounded-xl size-28"
-          aria-hidden="true">
-        <Image class="aspect-square h-full w-full" alt={`${name}'s profile picture`} src={avatar}/>
-    </span>
+
+    {printLinks.length > 0 && (
+      <div class="hidden gap-x-2 gap-y-1 font-mono text-sm text-foreground/80 print:flex print:flex-wrap print:text-[12px]">
+        {printLinks.map(({ href, label }, index) => (
+          <>
+            {index > 0 && <span aria-hidden="true">|</span>}
+            <a class="underline hover:text-foreground/70" href={href}>
+              {label}
+            </a>
+          </>
+        ))}
+      </div>
+    )}
+  </div>
+
+  <div class="relative flex size-28 shrink-0 overflow-hidden rounded-xl">
+    <Image
+      class="aspect-square h-full w-full object-cover"
+      alt={`${name}'s profile picture`}
+      src={avatar}
+    />
+  </div>
 </header>
